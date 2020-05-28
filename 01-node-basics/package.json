@@ -1,0 +1,28 @@
+{
+  "name": "noda",
+  "version": "1.0.0",
+  "description": "node.js home works",
+  "main": "index.js",
+  "dependencies": {
+    "esm": "^3.2.25",
+    "yargs": "^15.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grey4uk/noda.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/grey4uk/noda/issues"
+  },
+  "homepage": "https://github.com/grey4uk/noda#readme"
+}
