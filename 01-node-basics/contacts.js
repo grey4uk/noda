@@ -30,7 +30,6 @@ async function removeContact(contactId) {
     const contacts = await fsPromises.readFile(contactsPath, "utf-8");
     const delContactById = await JSON.parse(contacts).filter((contact) => contact.id !== contactId);
     await fsPromises.writeFile(contactsPath, JSON.stringify(delContactById));
-    console.log('contacts', delContactById);
   } catch (err) {
     console.log(err);
   }
