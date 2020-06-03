@@ -16,9 +16,9 @@ server.use(cors({ origin: ALLOWED_ORIGIN }));
 server.use(express.json());
 server.use("/api", userRouter);
 
-// server.use((err, req, res, next) => {
-//   return res.status(err.status).send(err.message);
-// });
+server.use((err, req, res, next) => {
+  return res.status(err.status).send(err.message);
+});
 
 server.listen(PORT, () => {
   console.log("Server started listening on port", PORT);

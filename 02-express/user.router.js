@@ -1,5 +1,9 @@
 const { Router } = require("express");
 const Joi = require("@hapi/joi");
+const fs = require("fs");
+const { promises: fsPromises } = fs;
+const path = require("path");
+const contactsPath = path.join(__dirname, "./db/contacts.json");
 
 const usersRouter = Router();
 
@@ -12,13 +16,13 @@ usersRouter.get("/contacts", getAllUsers);
 usersRouter.get("/contacts/:contactId", getUserById);
 
 //create user
-usersRouter.post("/contacts", validateCreateUser, createUser);
+usersRouter.post("/contacts", validateCreateFields, createUser);
 
 // delete user
-// usersRouter.delete("/contacts/:contactId", removeUser);
+usersRouter.delete("/contacts/:contactId", removeUser);
 
 // update user
-// usersRouter.patch("/contacts/:contactId", updateUser);
+usersRouter.patch("/contacts/:contactId", validateUpdateFields, updateUser);
 
 module.exports = usersRouter;
 
@@ -42,7 +46,7 @@ function getUserById(req, res, next) {
   return res.status(200).json(userFound);
 }
 
-function validateCreateUser(req, res, next) {
+function validateCreateFields(req, res, next) {
   const body = req.body;
 
   const userRules = Joi.object({
@@ -59,9 +63,8 @@ function validateCreateUser(req, res, next) {
   next();
 }
 
- function createUser(req, res, next) {
+async function createUser(req, res, next) {
   try {
-    console.log('userDB', usersDB);
     // 1. Validate request body +
     // 2. create id for user +
     // 3. save user to usersDB +
@@ -73,11 +76,86 @@ function validateCreateUser(req, res, next) {
       ...req.body,
       id,
     };
-    usersDB.push(createdUser);
-
-    console.log('userDB after', usersDB);
+    // usersDB.push(createdUser);
+    await fsPromises.writeFile(
+      contactsPath,
+      JSON.stringify([...usersDB, createdUser])
+    );
 
     return res.status(201).json(createdUser);
+  } catch (err) {
+    next(err);
+  }
+}
+
+function validateUpdateFields(req, res, next) {
+  const body = req.body;
+
+  if (body.name||body.email||body.phone) {
+    const userRules = Joi.object({
+      name: Joi.string(),
+      email: Joi.string(),
+      phone: Joi.string(),
+    });
+
+    const validationResult = userRules.validate(body);
+    if (validationResult.error) {
+      return res.status(400).json(validationResult.error);
+    }
+    next();
+  } else return res.status(400).send("missing fields");
+}
+
+async function updateUser(req, res, next) {
+  try {
+    // 1. validate request body +
+    // 2. getUser index from userDB by id +
+    // 3. if user not found - return 404 error +
+    // 4. if user found - update user +
+    // 5. send response with 200 and updated user
+
+    const userIndexFound = findUserIndex(req.params.contactId);
+
+    usersDB[userIndexFound] = {
+      ...usersDB[userIndexFound],
+      ...req.body,
+    };
+
+    await fsPromises.writeFile(contactsPath, JSON.stringify([...usersDB]));
+
+    return res.status(200).json(usersDB[userIndexFound]);
+  } catch (err) {
+    next(err);
+  }
+}
+
+function findUserIndex(userId) {
+  const userIndexFound = usersDB.findIndex(
+    (user) => Number(user.id) === Number(userId)
+  );
+  if (userIndexFound === -1) {
+    const err = new Error("User not found");
+    err.status = 404;
+    throw err;
+  }
+
+  return userIndexFound;
+}
+
+async function removeUser(req,res,next) {
+  try {
+    // 1. getUser index from userDB by id +
+    // 2. if user not found - send 404 error +
+    // 3. if user found - delete user from usersDB +
+    // 4. send 204 response
+
+    const userIndexFound = findUserIndex(req.params.contactId);
+
+    usersDB.splice(userIndexFound, 1);
+
+    await fsPromises.writeFile(contactsPath, JSON.stringify([...usersDB]));
+
+    return res.status(200).send("Contact deleted");
   } catch (err) {
     next(err);
   }
