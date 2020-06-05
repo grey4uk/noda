@@ -11,15 +11,3 @@ export class NotFound extends BaseError {
     super("NotFound", 404, message);
   }
 }
-
-export class Conflict extends BaseError {
-  constructor(message) {
-    super("Conflict", 409, message);
-  }
-}
-
-export class Unauthorized extends BaseError {
-  constructor(message) {
-    super("Unauthorized", 401, message);
-  }
-}
